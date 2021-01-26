@@ -1,0 +1,76 @@
+# Program to:
+#   1: Shorten name of shapekeys
+#   2: Transfer shapekeys from source object to target object
+
+import bpy
+
+context = bpy.context
+
+######### Change for your character here ##########
+
+#Character with shapekeys you want to transfer
+source_object = 'Genesis8Female.Shape.001'
+source_key = "Key.001" # formatting note: last three digits must match character shape last 3 digits
+
+#Character you want to transfer shapekeys to
+target_object = 'Genesis8Female.Shape'
+target_key = "Key" # formatting note: no 3 digits if character doesn't have 3 digits 
+
+#Part of shapekey name you want to remove
+str_to_remove = 'Genesis8Female__'
+
+###################################################
+
+
+def transfer_shapekeys():
+
+    bpy.data.objects[source_object].select_set (True)
+    context.view_layer.objects.active  = bpy.data.objects[target_object]
+
+    SK_Slot = 1
+    
+
+    for shapekey in bpy.data.shape_keys:
+         i = len (shapekey.key_blocks)-1
+         for keyblock in (shapekey.key_blocks):
+
+            context.view_layer.objects.active  = bpy.data.objects[source_object]
+            bpy.context.object.active_shape_key_index = SK_Slot
+            current_morph = bpy.data.shape_keys[source_key].key_blocks[SK_Slot].name
+            print (current_morph,"Transfered")
+
+            bpy.data.objects[source_object].select_set (True)
+            context.view_layer.objects.active  = bpy.data.objects[target_object]
+            bpy.ops.object.shape_key_transfer()
+
+            if SK_Slot == i:
+                return
+
+            SK_Slot += 1
+
+def shorten_shapekey_name():
+
+    SK_Slot = 0
+    for shapekey in bpy.data.shape_keys:
+         for keyblock in shapekey.key_blocks:
+            current_morph = bpy.data.shape_keys[source_key].key_blocks[SK_Slot].name
+            print ("renamed",current_morph.replace(str_to_remove, ''))
+            bpy.data.shape_keys[source_key].key_blocks[SK_Slot].name = (current_morph.replace(str_to_remove, ''))
+            SK_Slot += 1
+
+
+# Start of Main Program
+
+# Deselect all
+bpy.ops.object.select_all(action='DESELECT')
+
+#Shorten shapekey names
+shorten_shapekey_name() 
+
+#Transfer shapekeys from source to target
+transfer_shapekeys()
+
+# Deselect all
+bpy.ops.object.select_all(action='DESELECT')
+
+print ("Done!")
